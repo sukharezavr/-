@@ -14,4 +14,4 @@
 
 ## Использование
 ```bash
-python main.py
+python RGR_integr.py
