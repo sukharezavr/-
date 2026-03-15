@@ -103,7 +103,7 @@ test_tasks = {
         'exact': 1.77245,
         'note': 'Гладкая, неберущаяся'
     },
-    '√|x|': {
+    'Корень': {
     'f': f_sqrt_abs,
     'a': -1, 'b': 1,
     'exact': 4/3,
@@ -182,8 +182,6 @@ def analysis():
     print(f"{'Метод':<20} {'n':>5} {'h':>10} {'Факт. ошибка':>15} {'Теор. оценка':>15}")
     print("-" * 80)
 
-    plt.figure(figsize=(10, 6))
-
     for method, p, name in methods:
         errors = []
         h_values = []
@@ -214,16 +212,51 @@ def analysis():
             except:
                 print(f"{name:<20} {n:5d} {'---':>10} {'---':>15} {'---':>15}")
 
-        if errors:
-            plt.loglog(h_values, errors, 'o-', label=name, linewidth=2)
 
-    plt.xlabel('шаг h')
-    plt.ylabel('погрешность')
-    plt.title('Зависимость погрешности от шага (интеграл Пуассона)')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.savefig('error_vs_h.png', dpi=150, bbox_inches='tight')
-    plt.show()
+def plot_error():
+    n_values = [4, 8, 16, 32, 64, 128, 256, 512]
+
+    for task_name, task in test_tasks.items():
+        plt.figure(figsize=(12, 8))
+
+        for method, p, method_name in methods:
+            errors = []
+            valid_n = []
+
+            for n in n_values:
+                try:
+                    # Корректировка n
+                    if method == simpson and n % 2 != 0:
+                        n_used = n + 1
+                    elif method == three_eighths and n % 3 != 0:
+                        n_used = ((n + 2) // 3) * 3
+                    else:
+                        n_used = n
+
+                    I = method(task['f'], n_used, task['a'], task['b'])
+                    error = abs(task['exact'] - I)
+
+                    if error > 1e-16:
+                        errors.append(error)
+                        valid_n.append(n_used)
+
+                except Exception as e:
+                    print(f"Ошибка для {method_name} при n={n}: {e}")
+                    continue
+
+            if errors:
+                plt.semilogy(valid_n, errors, 'o-', label=method_name,
+                             linewidth=2, markersize=4)
+
+        plt.xlabel('число разбиений n')
+        plt.ylabel('фактическая погрешность (лог. шкала)')
+        plt.title(task_name)
+        plt.legend()
+        plt.grid(True, alpha=0.3, which='both')
+        plt.tight_layout()
+        plt.savefig(f'error_plot_{task_name}.png', dpi=150, bbox_inches='tight')
+        plt.show()
+
 
 
 methods = [
@@ -234,3 +267,4 @@ methods = [
 ]
 
 analysis()
+plot_error()
