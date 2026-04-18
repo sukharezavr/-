@@ -36,10 +36,6 @@
 - numpy
 - matplotlib
 
-Установка зависимостей:
-```bash
-pip install numpy matplotlib
-
 ## Запуск
 
 ```bash
